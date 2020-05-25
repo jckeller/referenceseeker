@@ -17,9 +17,9 @@ def init(args):
     try:
         cwd_path = Path(args.output).resolve()
         db_path = cwd_path.joinpath(args.db)
-        if(db_path.exists()):
+        if db_path.exists():
             print("detected existing database directory: %s" % db_path)
-            if(not db_path.is_dir()):
+            if not db_path.is_dir():
                 sys.exit("Database path (%s) exists but is not a directory!" % db_path)
         else:
             db_path.mkdir(mode=0o770)
@@ -35,7 +35,6 @@ def init(args):
     except:
         print("Error: could not init database (%s) in output directory (%s)!" % (args.output, args.db), file=sys.stderr)
         raise
-        sys.exit(-1)
     print("\nSuccessfully initialized empty database at %s" % db_path)
     print("Use 'referenceseeker_db import' to import genomes into database")
 
@@ -47,12 +46,12 @@ def import_genome(config, args):
         tmp_path = Path(tempfile.mkdtemp())
         genome_suffix = genome_path.suffix.lower()
         genome_id = args.id
-        if(genome_suffix in ['.fasta', '.fas', '.fsa', '.fna', '.fa']):
+        if genome_suffix in ['.fasta', '.fas', '.fsa', '.fna', '.fa']:
             # import fasta
             with genome_path.open() as fh_in:
                 sequences = SeqIO.parse(fh_in, "fasta")
                 test_sequences(sequences)
-        elif(genome_suffix in ['.genbank', '.gbff', '.gbk', '.gb']):
+        elif genome_suffix in ['.genbank', '.gbff', '.gbk', '.gb']:
             # import genbank
             input_path = genome_path
             genome_path = tmp_path.joinpath('genome.fasta')
@@ -60,7 +59,7 @@ def import_genome(config, args):
                 sequences = SeqIO.parse(fh_in, "genbank")
                 test_sequences(sequences)
                 SeqIO.write(sequences, fh_out, "fasta")
-        elif(genome_suffix in ['.embl', '.ebl', '.el']):
+        elif genome_suffix in ['.embl', '.ebl', '.el']:
             # import embl
             input_path = genome_path
             genome_path = tmp_path.joinpath('genome.fasta')
@@ -72,7 +71,7 @@ def import_genome(config, args):
             raise Exception("Unknown genome file extension (%s)" % genome_suffix)
 
         # extract genome id if it is empty
-        if(genome_id is None):
+        if genome_id is None:
             for record in SeqIO.parse(str(genome_path), 'fasta'):
                 genome_id = record.id
                 break
@@ -102,11 +101,11 @@ def import_genome(config, args):
             stderr=sp.PIPE,
             universal_newlines=True
         )
-        if(proc.returncode != 0):
+        if proc.returncode != 0:
             sys.exit("ERROR: failed to create genome kmer sketches via Mash!\nexit=%d\ncmd=%s" % (proc.returncode, cmd))
 
         existing_db_sketch_path = db_path.joinpath('db.msh')
-        if(existing_db_sketch_path.stat().st_size == 0):
+        if existing_db_sketch_path.stat().st_size == 0:
             # empty db -> replace existing with new sketch file
             shutil.move(str(tmp_path.joinpath('genome.msh')), str(existing_db_sketch_path))
         else:
@@ -126,7 +125,7 @@ def import_genome(config, args):
                 stderr=sp.PIPE,
                 universal_newlines=True
             )
-            if(proc.returncode != 0):
+            if proc.returncode != 0:
                 sys.exit("ERROR: failed to import sketch to database via Mash!\nexit=%d\ncmd=%s" % (proc.returncode, cmd))
             # replace old database sketch file by new db.msh
             shutil.move(str(tmp_path.joinpath('db.msh')), str(existing_db_sketch_path))
@@ -150,9 +149,9 @@ def import_genome(config, args):
 def test_sequences(sequences):
     sequence_ids = set()
     for record in sequences:
-        if(len(record.seq) == 0):
+        if len(record.seq) == 0:
             raise Exception("Record %s with zero length sequence" % record.id)
-        if(record.id in sequence_ids):
+        if record.id in sequence_ids:
             raise Exception("Duplicated record id: %s" % record.id)
         else:
             sequence_ids.add(record.id)
@@ -194,9 +193,9 @@ def main():
 
     args = parser.parse_args()
 
-    if(args.subcommand == 'init'):
+    if args.subcommand == 'init':
         init(args)
-    elif(args.subcommand == 'import'):
+    elif args.subcommand == 'import':
         import_genome(config, args)
     else:
         parser.print_help()

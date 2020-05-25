@@ -23,7 +23,7 @@ def run_mash(config, mash_output_path):
             stderr=sp.PIPE,
             universal_newlines=True
         )
-        if(proc.returncode != 0):
+        if proc.returncode != 0:
             sys.exit("ERROR: failed to execute Mash!\nexit=%d\ncmd=%s" % (proc.returncode, cmd))
 
 

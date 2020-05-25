@@ -12,6 +12,7 @@ import referenceseeker.util as util
 def align_query_genome(config, dna_fragments_path, dna_fragments, ref_genome_id):
     """Perform per-genome calculation of ANI/conserved DNA values.
 
+    :param dna_fragments_path:
     :param config: a global config object encapsulating global runtime vars
     :param dna_fragments: A dict comprising information on fragments.
     :param ref_genome_id: reference genome id.
@@ -29,7 +30,7 @@ def align_query_genome(config, dna_fragments_path, dna_fragments, ref_genome_id)
     ani = calculate_ani(dna_fragment_matches)
     conserved_dna = calculate_conserved_dna(dna_fragments, dna_fragment_matches)
 
-    return (ref_genome_id, ani, conserved_dna)
+    return ref_genome_id, ani, conserved_dna
 
 
 def align_reference_genome(config, query_genome_path, ref_genome_id):
@@ -56,7 +57,7 @@ def align_reference_genome(config, query_genome_path, ref_genome_id):
     ani = calculate_ani(dna_fragment_matches)
     conserved_dna = calculate_conserved_dna(dna_fragments, dna_fragment_matches)
 
-    return (ref_genome_id, ani, conserved_dna)
+    return ref_genome_id, ani, conserved_dna
 
 
 def execute_nucmer(config, tmp_dir, dna_fragments, query_path, reference_genome_path):
@@ -74,7 +75,7 @@ def execute_nucmer(config, tmp_dir, dna_fragments, query_path, reference_genome_
         stderr=sp.STDOUT,
         universal_newlines=True
     )
-    if(proc.returncode != 0):
+    if proc.returncode != 0:
         sys.exit("ERROR: failed to execute nucmer!\nexit=%d\ncmd=%s" % (proc.returncode, cmd))
 
     filtered_delta_path = tmp_dir.joinpath('out-filtered.delta')
@@ -91,7 +92,7 @@ def execute_nucmer(config, tmp_dir, dna_fragments, query_path, reference_genome_
             stdout=fh,
             stderr=sp.STDOUT
         )
-        if(proc.returncode != 0):
+        if proc.returncode != 0:
             sys.exit("ERROR: failed to execute delta-filter!\nexit=%d\ncmd=%s" % (proc.returncode, cmd))
 
     # parse nucmer output
@@ -100,11 +101,11 @@ def execute_nucmer(config, tmp_dir, dna_fragments, query_path, reference_genome_
     with filtered_delta_path.open() as fh:
         for line in fh:
             line = line.rstrip()
-            if(line[0] == '>'):
+            if line[0] == '>':
                 dna_fragment = dna_fragments.get(int(line.split(' ')[1]), None)
-            elif(dna_fragment is not None):
+            elif dna_fragment is not None:
                 cols = line.split(' ')
-                if(len(cols) == 7):
+                if len(cols) == 7:
                     dna_fragment['alignment_length'] = abs(int(cols[3]) - int(cols[2])) + 1  # abs( qStop - qStart ) + 1
                     dna_fragment['no_non_identities'] = int(cols[4])  # number of non-identities
                     dna_fragment_matches.append(dna_fragment)
@@ -124,7 +125,7 @@ def calculate_conserved_dna(dna_fragments, dna_fragment_matches):
     alignment_sum = 0
     for fm in dna_fragment_matches:
         rel_alignment_length = float(fm['alignment_length'] - fm['no_non_identities']) / float(fm['length'])
-        if(rel_alignment_length > 0.9):
+        if rel_alignment_length > 0.9:
             alignment_sum += fm['alignment_length']
     genome_length = 0
     for fm in dna_fragments.values():

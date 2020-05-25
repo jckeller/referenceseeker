@@ -14,7 +14,7 @@ def read_reference_genomes(config):
     ref_genomes = {}
     with open(str(config['db_path'].joinpath('db.tsv')), 'r') as fh:
         for line in fh:
-            if(line[0] != '#'):
+            if line[0] != '#':
                 cols = line.strip().split('\t')
                 accession_id = cols[0]
                 ref_genomes[accession_id] = {
@@ -86,7 +86,7 @@ def setup_configuration(args):
 
     base_dir = Path(__file__).parent.parent
     db_path = base_dir.joinpath('db')
-    if(os.access(str(db_path), os.R_OK & os.X_OK)):
+    if os.access(str(db_path), os.R_OK & os.X_OK):
         config['db'] = db_path
     return config
 
@@ -95,7 +95,7 @@ def set_path(config):
     config['env'] = os.environ.copy()
     base_dir = Path(__file__).parent.parent
     share_dir = base_dir.joinpath('share')
-    if(os.access(str(share_dir), os.R_OK & os.X_OK)):
+    if os.access(str(share_dir), os.R_OK & os.X_OK):
         config['env']['PATH'] = str(share_dir) + ':' + config['env']['PATH']
         config['bundled-binaries'] = True
 
