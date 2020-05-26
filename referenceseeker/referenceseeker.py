@@ -45,19 +45,25 @@ def main():
     util.test_binaries(config)
 
     # check parameters
-    db_path = Path(args.db)
-    if not os.access(str(db_path), os.R_OK):
-        sys.exit('ERROR: database directory not readable!')
-    db_path = db_path.resolve()
-    config['db_path'] = db_path
+    try:
+        config['db_path'] = util.check_path(args.db)
+    except IOError:
+        sys.exit('ERROR: database directory is not readable!')
+    except PermissionError:
+        sys.exit('ERROR (permission): database directory is not accessible')
+    except OSError:
+        sys.exit('ERROR: database directory is empty')
 
-    genome_path = Path(args.genome)
-    if not os.access(str(genome_path), os.R_OK):
-        sys.exit('ERROR: genome file not readable!')
-    if genome_path.stat().st_size == 0:
-        sys.exit('ERROR: genome file (%s) is empty!' % genome_path)
-    genome_path = genome_path.resolve()
-    config['genome_path'] = genome_path
+    try:
+        config['genome_path'] = util.check_path(args.genome)
+    except IOError:
+        sys.exit('ERROR: genome file is not readable!')
+    except PermissionError:
+        sys.exit('ERROR (permission): genome file is not accessible')
+    except OSError:
+        sys.exit('ERROR: genome file (%s) is empty!' % config['genome_path'])
+    except ValueError:
+        sys.exit('ERROR: genome file is not in fasta format')
 
     # print verbose information
     if args.verbose:
@@ -98,7 +104,7 @@ def main():
 
     # build dna fragments
     dna_fragments_path = config['tmp'].joinpath('dna-fragments.fasta')
-    dna_fragments = util.build_dna_fragments(genome_path, dna_fragments_path)
+    dna_fragments = util.build_dna_fragments(config['genome_path'], dna_fragments_path)
 
     # align query fragments to reference genomes and compute ANI/conserved DNA
     results = {}
@@ -119,7 +125,7 @@ def main():
         with cf.ProcessPoolExecutor(args.threads) as ppe:
             futures = []
             for id, ref_genome in screened_ref_genomes.items():
-                futures.append(ppe.submit(rani.align_reference_genome, config, genome_path, id))
+                futures.append(ppe.submit(rani.align_reference_genome, config, config['genome_path'], id))
             for f in futures:
                 ref_genome_id, ani, conserved_dna = f.result()
                 result = results[ref_genome_id]

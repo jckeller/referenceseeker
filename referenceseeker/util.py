@@ -141,5 +141,17 @@ def test_binaries(config):
         sys.exit('ERROR: \'delta-filter\' was not found!')
     except:
         sys.exit('ERROR: \'delta-filter\' was not exeutable!')
-
     return
+
+
+def check_path(path):
+    """checks if a given path is a viable directory"""
+    path = Path(path)
+    if not os.path.exists(path):
+        raise IOError
+    if not os.access(str(path), os.R_OK):
+        raise PermissionError
+    if path.stat().st_size == 0:
+        raise OSError
+    path = path.resolve()
+    return path
