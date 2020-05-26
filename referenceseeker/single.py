@@ -6,24 +6,9 @@ import referenceseeker.util as util
 
 
 def single(args, config):
-
-    # calculate genome distances via Mash
-    if args.verbose:
-        print('\nEstimate genome distances...')
-    mash_output_path = config['tmp'].joinpath('mash.out')
-    mash.run_mash(config, mash_output_path)
-
-    # extract hits and store dist
-    screened_ref_genome_ids, mash_distances = mash.parse_mash_results(config, mash_output_path)
-    if args.verbose:
-        print("\tscreened %d potential reference genome(s)" % len(screened_ref_genome_ids))
-
-    # reduce Mash output to best hits (args.crg)
-    if len(screened_ref_genome_ids) > args.crg:
-        if args.verbose:
-            print("\treduce to best %d hits..." % args.crg)
-        tmp_screened_ref_genome_ids = sorted(screened_ref_genome_ids, key=lambda k: mash_distances[k])
-        screened_ref_genome_ids = tmp_screened_ref_genome_ids[:args.crg]
+    """allows single genome analysis"""
+    # mash out best hits
+    screened_ref_genome_ids, mash_distances = mash.run_mash(args, config)
 
     # get genomes from RefSeq by accessions
     ref_genomes = util.read_reference_genomes(config)
