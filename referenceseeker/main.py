@@ -48,7 +48,7 @@ def main():
     # check parameters
     try:
         config['db_path'] = util.check_path(args.db)
-    except IOError:
+    except FileNotFoundError:
         sys.exit('ERROR: database directory is not readable!')
     except PermissionError:
         sys.exit('ERROR (permission): database directory is not accessible')
@@ -57,14 +57,12 @@ def main():
 
     try:
         config['genome_path'] = util.check_path(args.genome)
-    except IOError:
+    except FileNotFoundError:
         sys.exit('ERROR: genome file is not readable!')
     except PermissionError:
         sys.exit('ERROR (permission): genome file is not accessible')
     except OSError:
         sys.exit('ERROR: genome file (%s) is empty!' % config['genome_path'])
-    except ValueError:
-        sys.exit('ERROR: genome file is not in fasta format')
 
     # print verbose information
     if args.verbose:

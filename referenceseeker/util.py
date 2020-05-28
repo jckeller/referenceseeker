@@ -148,7 +148,7 @@ def check_path(path):
     """checks if a given path is a viable directory"""
     path = Path(path)
     if not os.path.exists(path):
-        raise IOError
+        raise FileNotFoundError
     if not os.access(str(path), os.R_OK):
         raise PermissionError
     if path.stat().st_size == 0:
