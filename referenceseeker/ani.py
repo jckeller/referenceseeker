@@ -7,37 +7,6 @@ import tempfile
 from pathlib import Path
 
 import referenceseeker.util as util
-import concurrent.futures as cf
-
-
-def align(args, config, screened_ref_genomes, dna_fragments_path, dna_fragments):
-    """unidirectional alignment: fragment to reference genome alignment, ANI and conserved DNA calculation;
-    bidirectional alignment: fragmented reference genome to query genome alignment"""
-    # align query fragments to reference genomes and compute ANI/conserved DNA
-    results = {}
-    if args.verbose:
-        print('\nCompute ANIs...')
-    with cf.ThreadPoolExecutor(max_workers=args.threads) as tpe:
-        futures = []
-        for identifier, ref_genome in screened_ref_genomes.items():
-            futures.append(tpe.submit(align_query_genome, config, dna_fragments_path, dna_fragments, identifier))
-        for f in futures:
-            ref_genome_id, ani, conserved_dna = f.result()
-            results[ref_genome_id] = [(ani, conserved_dna)]
-
-    # align reference genomes fragments to query genome and compute ANI/conserved DNA
-    if args.bidirectional:
-        if args.verbose:
-            print('\nCompute reverse ANIs...')
-        with cf.ProcessPoolExecutor(args.threads) as ppe:
-            futures = []
-            for identifier, ref_genome in screened_ref_genomes.items():
-                futures.append(ppe.submit(align_reference_genome, config, config['genome_path'], identifier))
-            for f in futures:
-                ref_genome_id, ani, conserved_dna = f.result()
-                result = results[ref_genome_id]
-                result.append((ani, conserved_dna))
-    return results
 
 
 def align_query_genome(config, dna_fragments_path, dna_fragments, ref_genome_id):

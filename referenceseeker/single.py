@@ -1,11 +1,23 @@
 import shutil
+import sys
+
 import referenceseeker.mash as mash
 import referenceseeker.ani as rani
 import referenceseeker.util as util
+import concurrent.futures as cf
 
 
 def single(args, config):
     """allows single genome analysis"""
+    try:
+        config['genome_path'] = util.check_path(args.genome)
+    except FileNotFoundError:
+        sys.exit('ERROR: genome file is not readable!')
+    except PermissionError:
+        sys.exit('ERROR (permission): genome file is not accessible')
+    except OSError:
+        sys.exit('ERROR: genome file (%s) is empty!' % config['genome_path'])
+
     # mash out best hits
     screened_ref_genome_ids, mash_distances = mash.run_mash(args, config)
 
@@ -17,7 +29,31 @@ def single(args, config):
     dna_fragments_path = config['tmp'].joinpath('dna-fragments.fasta')
     dna_fragments = util.build_dna_fragments(config['genome_path'], dna_fragments_path)
 
-    results = rani.align(args, config, screened_ref_genomes, dna_fragments_path, dna_fragments)
+    results = {}
+    # align query fragments to reference genomes and compute ANI/conserved DNA
+    results = {}
+    if args.verbose:
+        print('\nCompute ANIs...')
+    with cf.ThreadPoolExecutor(max_workers=args.threads) as tpe:
+        futures = []
+        for identifier, ref_genome in screened_ref_genomes.items():
+            futures.append(tpe.submit(rani.align_query_genome, config, dna_fragments_path, dna_fragments, identifier))
+        for f in futures:
+            ref_genome_id, ani, conserved_dna = f.result()
+            results[ref_genome_id] = [(ani, conserved_dna)]
+
+    # align reference genomes fragments to query genome and compute ANI/conserved DNA
+    if args.bidirectional:
+        if args.verbose:
+            print('\nCompute reverse ANIs...')
+        with cf.ProcessPoolExecutor(args.threads) as ppe:
+            futures = []
+            for identifier, ref_genome in screened_ref_genomes.items():
+                futures.append(ppe.submit(rani.align_reference_genome, config, config['genome_path'], identifier))
+            for f in futures:
+                ref_genome_id, ani, conserved_dna = f.result()
+                result = results[ref_genome_id]
+                result.append((ani, conserved_dna))
 
     # remove tmp dir
     shutil.rmtree(str(config['tmp']))
