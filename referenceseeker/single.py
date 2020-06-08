@@ -19,7 +19,8 @@ def single(args, config):
         sys.exit('ERROR: genome file %s is empty!' % args.genome)
 
     # mash out best hits
-    screened_ref_genome_ids, mash_distances = mash.run_mash(args, config)
+    mash_output_path = config['tmp'].joinpath('mash.out')
+    screened_ref_genome_ids, mash_distances = mash.run_mash(args, config, mash_output_path)
 
     # get genomes from RefSeq by accessions
     ref_genomes = util.read_reference_genomes(config)
@@ -29,7 +30,6 @@ def single(args, config):
     dna_fragments_path = config['tmp'].joinpath('dna-fragments.fasta')
     dna_fragments = util.build_dna_fragments(config['genome_path'], dna_fragments_path)
 
-    results = {}
     # align query fragments to reference genomes and compute ANI/conserved DNA
     results = {}
     if args.verbose:

@@ -5,7 +5,7 @@ import sys
 import referenceseeker.constants as rc
 
 
-def exec_mash(config, mash_output_path):
+def exec_mash(config, mash_output_path, genome_path):
     with mash_output_path.open(mode='w') as fh:
         cmd = [
             'mash',
@@ -13,7 +13,7 @@ def exec_mash(config, mash_output_path):
             '-d', rc.UNFILTERED_MASH_DIST if config['unfiltered'] else rc.MAX_MASH_DIST,
             '-p', str(config['threads']),
             str(config['db_path'].joinpath('db.msh')),
-            str(config['genome_path'])
+            str(genome_path)
         ]
         proc = sp.run(
             cmd,
@@ -38,14 +38,15 @@ def parse_mash_results(config, mash_output_path):
     return accession_ids, mash_distances
 
 
-def run_mash(args, config):
+def run_mash(args, config, mash_output_path, path):
     """calculates genome distances with mash, extracts the hits and filters for the best hits"""
     # calculate genome distances via Mash
     if args.verbose:
         print('\nEstimate genome distances...')
-    mash_output_path = config['tmp'].joinpath('mash.out')
-    exec_mash(config, mash_output_path)
-
+    if args.single:
+        exec_mash(config, mash_output_path, config["genome_path"])
+    if args.cohort:
+        exec_mash(config, mash_output_path, path)
     # extract hits and store dist
     screened_ref_genome_ids, mash_distances = parse_mash_results(config, mash_output_path)
     if args.verbose:
