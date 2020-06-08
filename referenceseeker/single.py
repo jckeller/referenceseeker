@@ -12,11 +12,11 @@ def single(args, config):
     try:
         config['genome_path'] = util.check_path(args.genome)
     except FileNotFoundError:
-        sys.exit('ERROR: genome file is not readable!')
+        sys.exit('ERROR: genome file %s is not readable!' % args.genome)
     except PermissionError:
-        sys.exit('ERROR (permission): genome file is not accessible')
+        sys.exit('ERROR (permission): genome file %s is not accessible' % args.genome)
     except OSError:
-        sys.exit('ERROR: genome file (%s) is empty!' % config['genome_path'])
+        sys.exit('ERROR: genome file %s is empty!' % args.genome)
 
     # mash out best hits
     screened_ref_genome_ids, mash_distances = mash.run_mash(args, config)
