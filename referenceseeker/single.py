@@ -41,15 +41,13 @@ def single(args, config):
         for f in futures:
             ref_genome_id, ani, conserved_dna = f.result()
             results[ref_genome_id] = [(ani, conserved_dna)]
-
-    # align reference genomes fragments to query genome and compute ANI/conserved DNA
-    if args.bidirectional:
-        if args.verbose:
-            print('\nCompute reverse ANIs...')
-        with cf.ProcessPoolExecutor(args.threads) as ppe:
+        # align reference genomes fragments to query genome and compute ANI/conserved DNA
+        if args.bidirectional:
+            if args.verbose:
+                print('\nCompute reverse ANIs...')
             futures = []
             for identifier, ref_genome in screened_ref_genomes.items():
-                futures.append(ppe.submit(rani.align_reference_genome, config, config['genome_path'], identifier))
+                futures.append(tpe.submit(rani.align_reference_genome, config, config['genome_path'], identifier))
             for f in futures:
                 ref_genome_id, ani, conserved_dna = f.result()
                 result = results[ref_genome_id]
