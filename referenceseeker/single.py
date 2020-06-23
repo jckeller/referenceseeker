@@ -10,7 +10,7 @@ import concurrent.futures as cf
 def single(args, config):
     """allows single genome analysis"""
     try:
-        config['genome_path'] = util.check_path(args.genome)
+        config['genome_path'] = [util.check_path(args.genome)]
     except FileNotFoundError:
         sys.exit('ERROR: genome file %s is not readable!' % args.genome)
     except PermissionError:
@@ -21,6 +21,7 @@ def single(args, config):
     # mash out best hits
     mash_output_path = config['tmp'].joinpath('mash.out')
     screened_ref_genome_ids, mash_distances = mash.run_mash(args, config, mash_output_path)
+    config['genome_path'] = config['genome_path'][0]  # Reformat genome_path
 
     # get genomes from RefSeq by accessions
     ref_genomes = util.read_reference_genomes(config)

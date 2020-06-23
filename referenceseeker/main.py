@@ -36,7 +36,7 @@ def main():
     subparsers = parser.add_subparsers(dest='subcommand', help='sub-command help')
     # add "single" sub-command option
     parser_single = subparsers.add_parser('single', help='start reference genome search for single genome')
-    parser_single.add_argument('genome', metavar='<genome>', action='store', nargs=1, help='target draft genome in fasta format')
+    parser_single.add_argument('genome', metavar='<genome>', action='store', help='target draft genome in fasta format')
 
     # add "cohort" sub-command option
     parser_cohort = subparsers.add_parser('cohort', help='start reference genome search for genome cohort')
