@@ -59,15 +59,14 @@ def parse_mash_cohort(config, mash_output_path):
                 mash_results.append(single_fasta)
                 single_fasta = [line]
 
-    # filter mash results for duplicates, save duplicates, delete singles
+    # filter mash results for duplicates, save intersection reference hits, delete singles
     top_mash_results = []
     for mash in mash_results:  # filter for best 100 mash results
         mash = sorted(mash, key=lambda k: k[2], reverse=True)
-        mash = mash[:100] if len(mash) > 100 else mash  # filter top x results, x = 100
         top_mash_results.append(mash)
     id_list = [ref_genome[0] for ref_genome in top_mash_results[0]]
 
-    # filter ids for duplicates (duplicates = in  the mash results of every query genome)
+    # filter ids for intersection mash results of every query genome
     filtered_ids = []
     for id in id_list:
         for mash_result in top_mash_results:
@@ -91,14 +90,11 @@ def parse_mash_cohort(config, mash_output_path):
     screened_ref_genomes_ids_list = []
     mash_distances_list = []
     for single_fasta in filtered_mash_results:
-        screened_ref_genomes_ids = []
         mash_distances = {}
         for entry in single_fasta:
-            screened_ref_genomes_ids.append(entry[0])
             mash_distances[entry[0]] = float(entry[2])  # 0 = ID, 2 = mash distance
-        screened_ref_genomes_ids_list.append(screened_ref_genomes_ids)
         mash_distances_list.append(mash_distances)
-    return filtered_mash_results, screened_ref_genomes_ids_list, mash_distances_list
+    return filtered_mash_results, filtered_ids, mash_distances_list
 
 
 def run_mash(args, config, mash_output_path):

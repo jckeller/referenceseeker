@@ -36,14 +36,11 @@ def cohort(args, config):
     mash.exec_mash(config, mash_output_path)
 
     # Parse mash results
-    mash_results, screened_ref_genomes_ids_list, mash_distances_list = mash.parse_mash_cohort(config, mash_output_path)
+    mash_results, filtered_ids, mash_distances_list = mash.parse_mash_cohort(config, mash_output_path)
 
     # get genomes from RefSeq by accessions
     ref_genomes = util.read_reference_genomes(config)  # read database reference genomes
-    screened_ref_genomes_list = []
-    for screened_ref_genome_ids in screened_ref_genomes_ids_list:
-        screened_ref_genomes = {k: v for k, v in ref_genomes.items() if k in screened_ref_genome_ids}
-        screened_ref_genomes_list.append(screened_ref_genomes)
+    screened_ref_genomes = {k: v for k, v in ref_genomes.items() if k in filtered_ids}
 
     # build DNA fragments
     dna_fragments_path = config['tmp'].joinpath('dna-fragments.fasta')
@@ -59,25 +56,23 @@ def cohort(args, config):
     with cf.ThreadPoolExecutor(max_workers=args.threads) as tpe:
         futures = []
         results = {}
-        for dna_fragments in dna_fragments_list:
-            for identifier, ref_genome in screened_ref_genomes_list[0].items():
-                futures.append(
-                    tpe.submit(rani.align_query_genome, config, dna_fragments_path, dna_fragments, identifier))
+        for genome_path, dna_fragments in zip(config['genome_path'], dna_fragments_list):
+            for identifier, ref_genome in screened_ref_genomes.items():
+                futures.append(tpe.submit(rani.align_query_genome, config, dna_fragments_path, dna_fragments, identifier))
             for f in futures:
                 ref_genome_id, ani, conserved_dna = f.result()
-                results[ref_genome_id] = [ani, conserved_dna]
+                results[ref_genome_id] = [(ani, conserved_dna)]
 
             # align reference genomes fragments to query genome and compute ANI/conserved DNA
             if args.bidirectional:
                 if args.verbose:
                     print('\nCompute reverse ANIs...')
                 futures = []
-                for identifier, ref_genome in screened_ref_genomes_list[0].items():
-                    futures.append(tpe.submit(rani.align_reference_genome, config, config['genome_path'], identifier))
+                for identifier, ref_genome in screened_ref_genomes.items():
+                    futures.append(tpe.submit(rani.align_reference_genome, config, genome_path, identifier))
                 for f in futures:
                     ref_genome_id, ani, conserved_dna = f.result()
-                    result = results[ref_genome_id]
-                    result.extend([ani, conserved_dna])
+                    results[ref_genome_id].append((ani, conserved_dna))
             cohort_results.append(results)
 
     # remove tmp dir
@@ -116,7 +111,33 @@ def cohort(args, config):
 
     # sort and print results according to ANI * conserved DNA values
     if args.bidirectional:
-        pass
+        ref_id_values = {r: [1, 1] for r in common_references}
+        for ref_id in common_references:
+            for results in cohort_results:
+                ref_id_values[ref_id][0] *= results[ref_id][0][0] * results[ref_id][1][0]  # Calculating forth and back ANI
+                ref_id_values[ref_id][1] *= results[ref_id][1][0] * results[ref_id][1][1]  # Calculating forth and back conDNA
+
+        common_references = sorted(common_references, key=lambda k: ref_id_values[k][0], reverse=True)
+
+        # printing results
+        print('#ID\tMash Distance\tANI\tCon. DNA\tANIconDNA-coefficient\tTaxonomy ID\tAssembly Status\tOrganism')  # "Aniconda?"
+        for id in common_references:  # print results to STDOUT
+            ref_genome = ref_genomes[id]
+            result = ref_id_values[id]
+
+            print(
+                '%s\t%1.5f\t%2.2f\t%2.2f\t%2.2f\t%s\t%s\t%s' %
+                (
+                    id,
+                    mash_distances_list[0][id],
+                    result[0] * 100,
+                    result[1] * 100,
+                    result[0] * result[1],
+                    ref_genome['tax'],
+                    ref_genome['status'],
+                    ref_genome['name']
+                )
+                )
     else:
         ref_id_values = {r: [1, 1] for r in common_references}
         for ref_id in common_references:
