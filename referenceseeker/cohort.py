@@ -92,7 +92,7 @@ def cohort(args, config):
                             and (ref_query[0] >= config['ani']) and (ref_query[1] >= config['conserved_dna'])):
                         filtered_reference_ids.append(ref_genome_id)
                 else:
-                    ani, conserved_dna = result
+                    ani, conserved_dna = result[0]
                     if (conserved_dna >= config['conserved_dna']) and (ani >= config['ani']):
                         filtered_reference_ids.append(ref_genome_id)
         filtered_reference_ids_list.append(filtered_reference_ids)
