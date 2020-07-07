@@ -36,11 +36,12 @@ def main():
     subparsers = parser.add_subparsers(dest='subcommand', help='sub-command help')
     # add "single" sub-command option
     parser_single = subparsers.add_parser('single', help='start reference genome search for single genome')
-    parser_single.add_argument('genome', metavar='<genome>', action='store', help='target draft genome in fasta format')
+    parser_single.add_argument('--genome', "-g", metavar='<genome>', action='store', help='target draft genome in fasta format')
 
     # add "cohort" sub-command option
     parser_cohort = subparsers.add_parser('cohort', help='start reference genome search for genome cohort')
-    parser_cohort.add_argument('cohort_genomes', metavar='<genome>', action='store', nargs="*", help='target draft genomes or directory with all draft genomes in fasta format')
+    parser_cohort.add_argument('--cohort_genomes', '-cg', metavar='<genome>', action='store', nargs="*", help='Target draft genomes or directory with all draft genomes in fasta format')
+    parser_cohort.add_argument('--algorithm', '-a', action='store', default="product", help='Choose algorithm to calculate best fitting reference genome.')
 
     args = parser.parse_args()
 

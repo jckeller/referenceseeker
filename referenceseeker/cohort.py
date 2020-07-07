@@ -1,12 +1,11 @@
 import shutil
 import sys
 
-from Bio import SeqIO
-
 import referenceseeker.util as util
 import referenceseeker.ani as rani
 import referenceseeker.mash as mash
 import concurrent.futures as cf
+import referenceseeker.algorithms as algo
 
 
 def cohort(args, config):
@@ -112,10 +111,7 @@ def cohort(args, config):
     # sort and print results according to ANI * conserved DNA values
     if args.bidirectional:
         ref_id_values = {r: [1, 1] for r in common_references}
-        for ref_id in common_references:
-            for results in cohort_results:
-                ref_id_values[ref_id][0] *= results[ref_id][0][0] * results[ref_id][1][0]  # Calculating forth and back ANI
-                ref_id_values[ref_id][1] *= results[ref_id][1][0] * results[ref_id][1][1]  # Calculating forth and back conDNA
+        ref_id_values = algo.calculate(args, ref_id_values, common_references, cohort_results)  # Calculating ANI and conDNA
 
         common_references = sorted(common_references, key=lambda k: ref_id_values[k][0], reverse=True)
 
@@ -140,10 +136,7 @@ def cohort(args, config):
                 )
     else:
         ref_id_values = {r: [1, 1] for r in common_references}
-        for ref_id in common_references:
-            for results in cohort_results:
-                ref_id_values[ref_id][0] *= results[ref_id][0]  # Calculating common ANI
-                ref_id_values[ref_id][1] *= results[ref_id][1]  # Calculating common conDNA
+        ref_id_values = algo.calculate(args, ref_id_values, common_references, cohort_results)  # Calculating ANI and conDNA
 
         common_references = sorted(common_references, key=lambda k: ref_id_values[k][0], reverse=True)
 
