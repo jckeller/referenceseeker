@@ -16,6 +16,10 @@ def calculate(args, ref_id_values, common_references, cohort_results):
                 for results in cohort_results:
                     ref_id_values[ref_id][0] *= results[ref_id][0][0]  # Calculating ANI
                     ref_id_values[ref_id][1] *= results[ref_id][0][1]  # Calculating conDNA
+        # ANIconDNA calculation
+        for ref_id in common_references:
+            anicondna = ref_id_values[ref_id][0] * ref_id_values[ref_id][1]
+            ref_id_values[ref_id].append(anicondna)
 
     # Mean
     if args.algorithm == "mean":
@@ -59,4 +63,5 @@ def calculate(args, ref_id_values, common_references, cohort_results):
                     sum_list_condna.append(results[ref_id][1][0])  # Calculating sum conDNA
                 ref_id_values[ref_id][0] = math.sqrt(sum(sum_list_ani) / len(sum_list_ani))  # Calculating rms ANI
                 ref_id_values[ref_id][1] = math.sqrt(sum(sum_list_condna) / len(sum_list_condna))  # Calculating rms conDNA
+
     return ref_id_values
