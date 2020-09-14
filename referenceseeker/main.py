@@ -42,7 +42,7 @@ def main():
     parser_cohort = subparsers.add_parser('cohort', help='start reference genome search for genome cohort')
     parser_cohort.add_argument('--cohort_genomes', '-cg', metavar='<genome>', action='store', nargs="*", help='Target draft genomes or directory with all draft genomes in fasta format')
     parser_cohort.add_argument('--algorithm', '-a', action='store', default="product", help='Choose algorithm to calculate best fitting reference genome.')
-    parser_cohort.add_argument('--n_mash_results', '-n', action='store', default=10, help="Define the number of mash results that will be used as reference-candidates")
+    parser_cohort.add_argument('--n_mash_results', '-n', action='store', default=100, help="Define the number of mash results that will be used as reference-candidates")
 
     args = parser.parse_args()
 
