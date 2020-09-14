@@ -138,4 +138,9 @@ def calculate(args, ref_id_values, common_references, cohort_results, query_geno
             ref_id_values[ref_id_key][1] = condna
             ref_id_values[ref_id_key][2] = anicondna
 
+    # Export final table
+    with open("final_scores.txt", "w+") as final_scores_file:
+        final_scores_file.write("#final scores of ANI, conDNA and ANIconDNA of each reference-genome\n")
+        final_scores_file.write(json.dumps(raw_scores))
+
     return ref_id_values
