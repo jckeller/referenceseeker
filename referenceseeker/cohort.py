@@ -1,5 +1,6 @@
 import shutil
 import sys
+import ntpath
 
 import referenceseeker.util as util
 import referenceseeker.ani as rani
@@ -50,6 +51,7 @@ def cohort(args, config):
 
     # align query fragments to reference genomes and compute ANI/conserved DNA
     cohort_results = []
+    query_genomes = []
     if args.verbose:
         print('\nCompute ANIs...')
     with cf.ThreadPoolExecutor(max_workers=args.threads) as tpe:
@@ -72,6 +74,7 @@ def cohort(args, config):
                 for f in futures:
                     ref_genome_id, ani, conserved_dna = f.result()
                     results[ref_genome_id].append((ani, conserved_dna))
+            query_genomes.append(ntpath.basename(genome_path).split(".", 1)[0])
             cohort_results.append(results)
 
     # remove tmp dir
@@ -108,10 +111,10 @@ def cohort(args, config):
             if elem not in common_references:
                 common_references.append(elem)
 
-    # sort and print results according to ANI * conserved DNA values
+    # Calculate and print results based on ANI and conDNA
     if args.bidirectional:
-        ref_id_values = {r: [1, 1] for r in common_references}
-        ref_id_values = algo.calculate(args, ref_id_values, common_references, cohort_results)  # Calculating ANI and conDNA
+        ref_id_values = {r: [1, 1, 1] for r in common_references}
+        ref_id_values = algo.calculate(args, ref_id_values, common_references, cohort_results, query_genomes)  # Calculating ANI and conDNA
 
         common_references = sorted(common_references, key=lambda k: ref_id_values[k][0], reverse=True)
 
@@ -128,15 +131,15 @@ def cohort(args, config):
                     mash_distances_list[0][id],
                     result[0] * 100,
                     result[1] * 100,
-                    result[0] * result[1],
+                    result[2] * 100,
                     ref_genome['tax'],
                     ref_genome['status'],
                     ref_genome['name']
                 )
                 )
     else:
-        ref_id_values = {r: [1, 1] for r in common_references}
-        ref_id_values = algo.calculate(args, ref_id_values, common_references, cohort_results)  # Calculating ANI and conDNA
+        ref_id_values = {r: [1, 1, 1] for r in common_references}
+        ref_id_values = algo.calculate(args, ref_id_values, common_references, cohort_results, query_genomes)  # Calculating ANI and conDNA
 
         common_references = sorted(common_references, key=lambda k: ref_id_values[k][2], reverse=True)
 
