@@ -82,58 +82,56 @@ def calculate(args, ref_id_values, common_references, cohort_results, query_geno
 
     # ANIconDNA calculation: geometric mean
     if args.algorithm == "geometric":
-        for ref_id in common_references:
-            for ref_id_key, ref_id_dic in raw_scores.items():
-                ani_score_list = []
-                condna_score_list = []
-                anicondna_score_list = []
-                for key2, query in ref_id_dic.items():
-                    ani_score_list.append(query[0])
-                    condna_score_list.append(query[1])
-                    anicondna_score_list.append(query[2])
-                ani = 1
-                condna = 1
-                anicondna = 1
-                for score in ani_score_list:
-                    ani *= score
-                ani = ani**(1/len(ani_score_list))
-                for score in condna_score_list:
-                    condna *= score
-                condna = condna**(1/len(condna_score_list))
-                for score in anicondna_score_list:
-                    anicondna *= score
-                anicondna = anicondna**(1/len(anicondna_score_list))
+        for ref_id_key, ref_id_dic in raw_scores.items():
+            ani_score_list = []
+            condna_score_list = []
+            anicondna_score_list = []
+            for key2, query in ref_id_dic.items():
+                ani_score_list.append(query[0])
+                condna_score_list.append(query[1])
+                anicondna_score_list.append(query[2])
+            ani = 1
+            condna = 1
+            anicondna = 1
+            for score in ani_score_list:
+                ani *= score
+            ani = ani**(1/len(ani_score_list))
+            for score in condna_score_list:
+                condna *= score
+            condna = condna**(1/len(condna_score_list))
+            for score in anicondna_score_list:
+                anicondna *= score
+            anicondna = anicondna**(1/len(anicondna_score_list))
 
-                ref_id_values[ref_id_key][0] = ani
-                ref_id_values[ref_id_key][1] = condna
-                ref_id_values[ref_id_key][2] = anicondna
+            ref_id_values[ref_id_key][0] = ani
+            ref_id_values[ref_id_key][1] = condna
+            ref_id_values[ref_id_key][2] = anicondna
 
     # ANIconDNA calculation: harmonic mean
     if args.algorithm == "harmonic":
-        for ref_id in common_references:
-            for ref_id_key, ref_id_dic in raw_scores.items():
-                ani_score_list = []
-                condna_score_list = []
-                anicondna_score_list = []
-                for key2, query in ref_id_dic.items():
-                    ani_score_list.append(query[0])
-                    condna_score_list.append(query[1])
-                    anicondna_score_list.append(query[2])
-                ani = 1
-                condna = 1
-                anicondna = 1
-                for score in ani_score_list:
-                    ani += (1/score)
-                ani = len(ani_score_list)/ani
-                for score in condna_score_list:
-                    condna += (1/score)
-                condna = len(condna_score_list)/condna
-                for score in anicondna_score_list:
-                    anicondna += (1/score)
-                anicondna = len(anicondna_score_list)/anicondna
+        for ref_id_key, ref_id_dic in raw_scores.items():
+            ani_score_list = []
+            condna_score_list = []
+            anicondna_score_list = []
+            for key2, query in ref_id_dic.items():
+                ani_score_list.append(query[0])
+                condna_score_list.append(query[1])
+                anicondna_score_list.append(query[2])
+            ani = 1
+            condna = 1
+            anicondna = 1
+            for score in ani_score_list:
+                ani += (1/score)
+            ani = len(ani_score_list)/ani
+            for score in condna_score_list:
+                condna += (1/score)
+            condna = len(condna_score_list)/condna
+            for score in anicondna_score_list:
+                anicondna += (1/score)
+            anicondna = len(anicondna_score_list)/anicondna
 
-                ref_id_values[ref_id_key][0] = ani
-                ref_id_values[ref_id_key][1] = condna
-                ref_id_values[ref_id_key][2] = anicondna
+            ref_id_values[ref_id_key][0] = ani
+            ref_id_values[ref_id_key][1] = condna
+            ref_id_values[ref_id_key][2] = anicondna
 
     return ref_id_values
