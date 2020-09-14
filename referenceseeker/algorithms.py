@@ -26,7 +26,7 @@ def calculate(args, ref_id_values, common_references, cohort_results, query_geno
                     condna_score = results[ref_id][0][1]  # Calculating bidirectional conDNA
                     anicondna_score = ani_score * condna_score
                     dic[name] = (ani_score, condna_score, anicondna_score)
-                raw_scores[ref_id] = dic
+            raw_scores[ref_id] = dic
 
     # Export the rawscores
     with open("rawscores.txt", "w+") as rawscores_file:
