@@ -116,7 +116,7 @@ def cohort(args, config):
         ref_id_values = {r: [1, 1, 1] for r in common_references}
         ref_id_values = algo.calculate(args, ref_id_values, common_references, cohort_results, query_genomes)  # Calculating ANI and conDNA
 
-        common_references = sorted(common_references, key=lambda k: ref_id_values[k][0], reverse=True)
+        common_references = sorted(common_references, key=lambda k: ref_id_values[k][2], reverse=True)
 
         # printing results
         print('#ID\tMash Distance\tANI\tCon. DNA\tANIconDNA-coefficient\tTaxonomy ID\tAssembly Status\tOrganism')  # "Aniconda?"
