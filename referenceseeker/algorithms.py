@@ -1,5 +1,4 @@
-
-import math
+import json
 
 
 def calculate(args, ref_id_values, common_references, cohort_results, query_genomes):
@@ -28,6 +27,11 @@ def calculate(args, ref_id_values, common_references, cohort_results, query_geno
                     anicondna_score = ani_score * condna_score
                     dic[name] = (ani_score, condna_score, anicondna_score)
                 raw_scores[ref_id] = dic
+
+    # Export the rawscores
+    with open("rawscores.txt", "w+") as rawscores_file:
+        rawscores_file.write("#rawscores of ANI, conDNA and ANIconDNA of each reference-genome to each query-genome\n")
+        rawscores_file.write(json.dumps(raw_scores))
 
     # ANIconDNA calculation: Product
     if args.algorithm == "product":
