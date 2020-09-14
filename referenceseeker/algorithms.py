@@ -3,9 +3,13 @@ import json
 
 def calculate(args, ref_id_values, common_references, cohort_results, query_genomes):
     """Calculates common ANIs and conDNAs based on choosen algorithm."""
-    # Calculating and exporting raw scores
+    # Export the cohort results
+    with open("cohort_results.txt", "w+") as cohort_results_file:
+        cohort_results_file.write("#cohort results of the analysis\n")
+        cohort_results_file.write(json.dumps(cohort_results, sort_keys=True, indent=4))
+    
+    # Calculate rawscores of each reference-genome to each query genome
     raw_scores = {}
-    # print("ref_id_values: \n", ref_id_values, "\ncommon_references:\n", common_references, "\ncohort_results:\n", cohort_results)
     if args.bidirectional:
         for ref_id in common_references:
             dic = {}
@@ -31,7 +35,7 @@ def calculate(args, ref_id_values, common_references, cohort_results, query_geno
     # Export the rawscores
     with open("rawscores.txt", "w+") as rawscores_file:
         rawscores_file.write("#rawscores of ANI, conDNA and ANIconDNA of each reference-genome to each query-genome\n")
-        rawscores_file.write(json.dumps(raw_scores))
+        rawscores_file.write(json.dumps(raw_scores, sort_keys=True, indent=4))
 
     # ANIconDNA calculation: Product
     if args.algorithm == "product":
@@ -141,6 +145,6 @@ def calculate(args, ref_id_values, common_references, cohort_results, query_geno
     # Export final table
     with open("final_scores.txt", "w+") as final_scores_file:
         final_scores_file.write("#final scores of ANI, conDNA and ANIconDNA of each reference-genome\n")
-        final_scores_file.write(json.dumps(raw_scores))
+        final_scores_file.write(json.dumps(raw_scores, sort_keys=True, indent=4))
 
     return ref_id_values
