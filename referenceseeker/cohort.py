@@ -156,7 +156,7 @@ def cohort(args, config):
                     mash_distances_list[0][id],
                     result[0] * 100,
                     result[1] * 100,
-                    result[0] * result[1],
+                    result[2] * 100,
                     ref_genome['tax'],
                     ref_genome['status'],
                     ref_genome['name']
