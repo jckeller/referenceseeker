@@ -15,8 +15,8 @@ def calculate(args, ref_id_values, common_references, cohort_results, query_geno
             dic = {}
             for name in query_genomes:
                 for results in cohort_results:
-                    ani_score = results[ref_id][0][0] * results[ref_id][1][0] # Calculating bidirectional ANI
-                    condna_score = results[ref_id][0][1] * results[ref_id][1][1]  # Calculating bidirectional conDNA
+                    ani_score = (results[ref_id][0][0] + results[ref_id][1][0])/2  # Calculating bidirectional ANI
+                    condna_score = (results[ref_id][0][1] + results[ref_id][1][1])/2  # Calculating bidirectional conDNA
                     anicondna_score = ani_score*condna_score
                     dic[name] = (ani_score, condna_score, anicondna_score)
             raw_scores[ref_id] = dic
