@@ -38,10 +38,23 @@ def build_dna_fragments(genome_path, dna_fragments_path):
     dna_fragments = {}
     dna_fragment_idx = 0
     with dna_fragments_path.open(mode='w') as fh:
-        for record in SeqIO.parse(str(genome_path), 'fasta'):
-            sequence = str(record.seq)
-            while len(sequence) > (rc.FRAGMENT_SIZE + rc.MIN_FRAGMENT_SIZE):  # forestall fragments shorter than MIN_FRAGMENT_SIZE
-                dna_fragment = sequence[:rc.FRAGMENT_SIZE]
+        try:
+            for record in SeqIO.parse(str(genome_path), 'fasta'):
+                sequence = str(record.seq)
+                while len(sequence) > (rc.FRAGMENT_SIZE + rc.MIN_FRAGMENT_SIZE):  # forestall fragments shorter than MIN_FRAGMENT_SIZE
+                    dna_fragment = sequence[:rc.FRAGMENT_SIZE]
+                    dna_fragment_idx += 1
+                    fh.write('>')
+                    fh.write(str(dna_fragment_idx))
+                    fh.write('\n')
+                    fh.write(str(dna_fragment))
+                    fh.write('\n')
+                    dna_fragments[dna_fragment_idx] = {
+                        'id': dna_fragment_idx,
+                        'length': len(dna_fragment)
+                    }
+                    sequence = sequence[rc.FRAGMENT_SIZE:]
+                dna_fragment = sequence
                 dna_fragment_idx += 1
                 fh.write('>')
                 fh.write(str(dna_fragment_idx))
@@ -52,19 +65,9 @@ def build_dna_fragments(genome_path, dna_fragments_path):
                     'id': dna_fragment_idx,
                     'length': len(dna_fragment)
                 }
-                sequence = sequence[rc.FRAGMENT_SIZE:]
-            dna_fragment = sequence
-            dna_fragment_idx += 1
-            fh.write('>')
-            fh.write(str(dna_fragment_idx))
-            fh.write('\n')
-            fh.write(str(dna_fragment))
-            fh.write('\n')
-            dna_fragments[dna_fragment_idx] = {
-                'id': dna_fragment_idx,
-                'length': len(dna_fragment)
-            }
-            # sequence = sequence[rc.FRAGMENT_SIZE:]
+                # sequence = sequence[rc.FRAGMENT_SIZE:]
+        except ImportError:
+            sys.exit("ERROR: Genome file is not in fasta format")
     return dna_fragments
 
 
@@ -141,5 +144,17 @@ def test_binaries(config):
         sys.exit('ERROR: \'delta-filter\' was not found!')
     except:
         sys.exit('ERROR: \'delta-filter\' was not exeutable!')
-
     return
+
+
+def check_path(path):
+    """checks if a given path is a viable directory"""
+    path = Path(path)
+    if not os.path.exists(path):
+        raise FileNotFoundError
+    if not os.access(str(path), os.R_OK):
+        raise PermissionError
+    if path.stat().st_size == 0:
+        raise OSError
+    path = path.resolve()
+    return path
