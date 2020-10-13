@@ -7,6 +7,7 @@ import referenceseeker
 import referenceseeker.constants as rc
 import referenceseeker.util as util
 import referenceseeker.single as single
+import referenceseeker.cohort as cohort
 
 
 def main():
@@ -19,7 +20,6 @@ def main():
         add_help=False
     )
     parser.add_argument('db', metavar='<database>', help='ReferenceSeeker database path')
-    parser.add_argument('genome', metavar='<genome>', help='target draft genome in fasta format')
     group_workflow = parser.add_argument_group('Filter options / thresholds', 'These options control the filtering and alignment workflow.')
     group_workflow.add_argument('--crg', '-r', action='store', type=int, default=100, help='Max number of candidate reference genomes to pass kmer prefilter (default = 100)')
     group_workflow.add_argument('--ani', '-a', action='store', type=float, default=0.95, help='ANI threshold (default = 0.95)')
@@ -36,8 +36,11 @@ def main():
     subparsers = parser.add_subparsers(dest='subcommand', help='sub-command help')
     # add "single" sub-command option
     parser_single = subparsers.add_parser('single', help='start reference genome search for single genome')
+    parser_single.add_argument('genome', metavar='<genome>', action='store', help='target draft genome in fasta format')
+
     # add "cohort" sub-command option
     parser_cohort = subparsers.add_parser('cohort', help='start reference genome search for genome cohort')
+    parser_cohort.add_argument('cohort_genomes', metavar='<genome>', action='store', nargs="*", help='target draft genomes or directory with all draft genomes in fasta format')
 
     args = parser.parse_args()
 
@@ -45,7 +48,7 @@ def main():
     config = util.setup_configuration(args)
     util.test_binaries(config)
 
-    # check parameters
+    # check database parameters
     try:
         config['db_path'] = util.check_path(args.db)
     except FileNotFoundError:
@@ -54,15 +57,6 @@ def main():
         sys.exit('ERROR (permission): database directory is not accessible')
     except OSError:
         sys.exit('ERROR: database directory is empty')
-
-    try:
-        config['genome_path'] = util.check_path(args.genome)
-    except FileNotFoundError:
-        sys.exit('ERROR: genome file is not readable!')
-    except PermissionError:
-        sys.exit('ERROR (permission): genome file is not accessible')
-    except OSError:
-        sys.exit('ERROR: genome file (%s) is empty!' % config['genome_path'])
 
     # print verbose information
     if args.verbose:
@@ -83,7 +77,8 @@ def main():
         single.single(args, config)
 
     elif args.subcommand == 'cohort':
-        pass
+
+        cohort.cohort(args, config)
 
     else:
         parser.print_help()
