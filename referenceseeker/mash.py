@@ -59,10 +59,11 @@ def parse_mash_cohort(config, mash_output_path):
                 mash_results.append(single_fasta)
                 single_fasta = [line]
 
-    # filter mash results for duplicates, save intersection reference hits, delete singles
+    # filter mash results for duplicates, save intersection reference hits, delete singles and reduce size of list
     top_mash_results = []
     for mash in mash_results:  # filter for best 100 mash results
         mash = sorted(mash, key=lambda k: k[2], reverse=True)
+        mash = mash[0:config['n_mash_results']]
         top_mash_results.append(mash)
     id_list = [ref_genome[0] for ref_genome in top_mash_results[0]]
 

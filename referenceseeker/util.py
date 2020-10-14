@@ -73,18 +73,20 @@ def build_dna_fragments(genome_path, dna_fragments_path):
 
 def setup_configuration(args):
     """Test environment and build a runtime configuration."""
-
-    config = {
-        'tmp': Path(tempfile.mkdtemp()),
-        'bundled-binaries': False,
-        'threads': args.threads,
-        'unfiltered': args.unfiltered,
-        'bidirectional': args.bidirectional,
-        'crg': args.crg,
-        'ani': args.ani,
-        'conserved_dna': args.conserved_dna
-    }
-
+    try:
+        config = {
+            'tmp': Path(tempfile.mkdtemp()),
+            'bundled-binaries': False,
+            'threads': args.threads,
+            'unfiltered': args.unfiltered,
+            'bidirectional': args.bidirectional,
+            'crg': args.crg,
+            'ani': args.ani,
+            'conserved_dna': args.conserved_dna,
+            'n_mash_results': int(args.n_mash_results)
+        }
+    except ValueError:
+        sys.exit('Error: n_mash_results must be a number ("integer")')
     set_path(config)
 
     base_dir = Path(__file__).parent.parent

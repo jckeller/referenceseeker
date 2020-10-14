@@ -1,12 +1,12 @@
 import shutil
 import sys
-
-from Bio import SeqIO
+import ntpath
 
 import referenceseeker.util as util
 import referenceseeker.ani as rani
 import referenceseeker.mash as mash
 import concurrent.futures as cf
+import referenceseeker.algorithms as algo
 
 
 def cohort(args, config):
@@ -51,6 +51,7 @@ def cohort(args, config):
 
     # align query fragments to reference genomes and compute ANI/conserved DNA
     cohort_results = []
+    query_genomes = []
     if args.verbose:
         print('\nCompute ANIs...')
     with cf.ThreadPoolExecutor(max_workers=args.threads) as tpe:
@@ -73,6 +74,7 @@ def cohort(args, config):
                 for f in futures:
                     ref_genome_id, ani, conserved_dna = f.result()
                     results[ref_genome_id].append((ani, conserved_dna))
+            query_genomes.append(ntpath.basename(genome_path).split(".", 1)[0])
             cohort_results.append(results)
 
     # remove tmp dir
@@ -93,7 +95,7 @@ def cohort(args, config):
                             and (ref_query[0] >= config['ani']) and (ref_query[1] >= config['conserved_dna'])):
                         filtered_reference_ids.append(ref_genome_id)
                 else:
-                    ani, conserved_dna = result
+                    ani, conserved_dna = result[0]
                     if (conserved_dna >= config['conserved_dna']) and (ani >= config['ani']):
                         filtered_reference_ids.append(ref_genome_id)
         filtered_reference_ids_list.append(filtered_reference_ids)
@@ -109,15 +111,12 @@ def cohort(args, config):
             if elem not in common_references:
                 common_references.append(elem)
 
-    # sort and print results according to ANI * conserved DNA values
+    # Calculate and print results based on ANI and conDNA
     if args.bidirectional:
-        ref_id_values = {r: [1, 1] for r in common_references}
-        for ref_id in common_references:
-            for results in cohort_results:
-                ref_id_values[ref_id][0] *= results[ref_id][0][0] * results[ref_id][1][0]  # Calculating forth and back ANI
-                ref_id_values[ref_id][1] *= results[ref_id][1][0] * results[ref_id][1][1]  # Calculating forth and back conDNA
+        ref_id_values = {r: [1, 1, 1] for r in common_references}
+        ref_id_values = algo.calculate(args, ref_id_values, common_references, cohort_results, query_genomes)  # Calculating ANI and conDNA
 
-        common_references = sorted(common_references, key=lambda k: ref_id_values[k][0], reverse=True)
+        common_references = sorted(common_references, key=lambda k: ref_id_values[k][2], reverse=True)
 
         # printing results
         print('#ID\tMash Distance\tANI\tCon. DNA\tANIconDNA-coefficient\tTaxonomy ID\tAssembly Status\tOrganism')  # "Aniconda?"
@@ -132,20 +131,17 @@ def cohort(args, config):
                     mash_distances_list[0][id],
                     result[0] * 100,
                     result[1] * 100,
-                    result[0] * result[1],
+                    result[2] * 100,
                     ref_genome['tax'],
                     ref_genome['status'],
                     ref_genome['name']
                 )
                 )
     else:
-        ref_id_values = {r: [1, 1] for r in common_references}
-        for ref_id in common_references:
-            for results in cohort_results:
-                ref_id_values[ref_id][0] *= results[ref_id][0]  # Calculating common ANI
-                ref_id_values[ref_id][1] *= results[ref_id][1]  # Calculating common conDNA
+        ref_id_values = {r: [1, 1, 1] for r in common_references}
+        ref_id_values = algo.calculate(args, ref_id_values, common_references, cohort_results, query_genomes)  # Calculating ANI and conDNA
 
-        common_references = sorted(common_references, key=lambda k: ref_id_values[k][0], reverse=True)
+        common_references = sorted(common_references, key=lambda k: ref_id_values[k][2], reverse=True)
 
         # printing results
         print('#ID\tMash Distance\tANI\tCon. DNA\tANIconDNA-coefficient\tTaxonomy ID\tAssembly Status\tOrganism')  # "Aniconda?"
@@ -160,7 +156,7 @@ def cohort(args, config):
                     mash_distances_list[0][id],
                     result[0] * 100,
                     result[1] * 100,
-                    result[0] * result[1],
+                    result[2] * 100,
                     ref_genome['tax'],
                     ref_genome['status'],
                     ref_genome['name']
