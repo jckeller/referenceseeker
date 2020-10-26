@@ -37,6 +37,8 @@ def main():
     # add "single" sub-command option
     parser_single = subparsers.add_parser('single', help='start reference genome search for single genome')
     parser_single.add_argument('--genome', "-g", metavar='<genome>', action='store', help='target draft genome in fasta format')
+    parser_single.add_argument('--n_mash_results', '-n', action='store', default=100, help="Define the number of mash results that will be used as reference-candidates")
+
 
     # add "cohort" sub-command option
     parser_cohort = subparsers.add_parser('cohort', help='start reference genome search for genome cohort')
